@@ -8,60 +8,59 @@
   vapoursynth,
   makeWrapper,
   withPlugins,
-}:
+}: plugins: let
+  pythonEnvironment = python3.buildEnv.override {extraLibs = plugins;};
 
-plugins:
-let
-  pythonEnvironment = python3.buildEnv.override { extraLibs = plugins; };
-
-  getRecursivePropagatedBuildInputs =
-    pkgs:
+  getRecursivePropagatedBuildInputs = pkgs:
     lib.flatten (
       map (
-        pkg:
-        let
+        pkg: let
           cleanPropagatedBuildInputs = lib.filter lib.isDerivation pkg.propagatedBuildInputs;
         in
-        cleanPropagatedBuildInputs ++ (getRecursivePropagatedBuildInputs cleanPropagatedBuildInputs)
-      ) pkgs
+          cleanPropagatedBuildInputs ++ (getRecursivePropagatedBuildInputs cleanPropagatedBuildInputs)
+      )
+      pkgs
     );
 
   deepPlugins = lib.unique (plugins ++ (getRecursivePropagatedBuildInputs plugins));
 
   pluginsEnv = buildEnv {
     name = "vapoursynth-plugins-env";
-    pathsToLink = [ "/lib/vapoursynth" ];
+    pathsToLink = ["/lib/vapoursynth"];
     paths = deepPlugins;
   };
 
   # Override default plugin path through nixPluginDir symbol
   nixPlugins =
     runCommandCC "libvapoursynth-nix-plugins${ext}"
-      {
-        executable = true;
-        preferLocalBuild = true;
-        allowSubstitutes = false;
-        src = ''
-          char const nixPluginDir[] = "${pluginsEnv}/lib/vapoursynth";
-        '';
-      }
-      ''
-        $CC -x c -shared -fPIC - -o "$out" <<<"$src"
+    {
+      executable = true;
+      preferLocalBuild = true;
+      allowSubstitutes = false;
+      src = ''
+        char const nixPluginDir[] = "${pluginsEnv}/lib/vapoursynth";
       '';
+    }
+    ''
+      $CC -x c -shared -fPIC - -o "$out" <<<"$src"
+    '';
 
   ext = stdenv.hostPlatform.extensions.sharedLibrary;
 in
-if stdenv.hostPlatform.isDarwin then
-  vapoursynth.overrideAttrs (previousAttrs: {
-    pname = "vapoursynth-with-plugins";
-    configureFlags = (previousAttrs.configureFlags or [ ]) ++ [
-      "--with-plugindir=${pluginsEnv}/lib/vapoursynth"
-    ];
-  })
-else
-  runCommand "${vapoursynth.name}-with-plugins"
+  if stdenv.hostPlatform.isDarwin
+  then
+    vapoursynth.overrideAttrs (previousAttrs: {
+      pname = "vapoursynth-with-plugins";
+      configureFlags =
+        (previousAttrs.configureFlags or [])
+        ++ [
+          "--with-plugindir=${pluginsEnv}/lib/vapoursynth"
+        ];
+    })
+  else
+    runCommand "${vapoursynth.name}-with-plugins"
     {
-      nativeBuildInputs = [ makeWrapper ];
+      nativeBuildInputs = [makeWrapper];
       passthru = {
         inherit python3;
         inherit (vapoursynth) src version;

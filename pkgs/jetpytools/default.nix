@@ -3,11 +3,9 @@
   buildPythonPackage,
   fetchFromGitHub,
   setuptools,
-
   pytestCheckHook,
   typing-extensions,
 }:
-
 buildPythonPackage rec {
   pname = "jetpytools";
   version = "1.4.0";
@@ -20,13 +18,13 @@ buildPythonPackage rec {
     hash = "sha256-U/MtqQRFPYJPUr+f6VKlvjulSsiY2gHBuMg3IcbbEQE=";
   };
 
-  build-system = [ setuptools ];
+  build-system = [setuptools];
 
   dependencies = [
     typing-extensions
   ];
 
-  pythonImportsCheck = [ "jetpytools" ];
+  pythonImportsCheck = ["jetpytools"];
 
   nativeCheckInputs = [
     pytestCheckHook
@@ -37,6 +35,6 @@ buildPythonPackage rec {
     homepage = "https://github.com/Jaded-Encoding-Thaumaturgy/vs-pyplugin";
     changelog = "https://github.com/Jaded-Encoding-Thaumaturgy/vs-pyplugin/releases";
     license = lib.licenses.mit;
-    maintainers = with lib.maintainers; [ sigmanificient ];
+    maintainers = with lib.maintainers; [sigmanificient];
   };
 }

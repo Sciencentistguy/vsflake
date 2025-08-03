@@ -7,7 +7,7 @@
   cmake,
   ninja,
   zimg,
-pkgsStatic,
+  pkgsStatic,
 }: let
   resize2-src = fetchFromGitHub {
     owner = "Jaded-Encoding-Thaumaturgy";

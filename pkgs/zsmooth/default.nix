@@ -16,8 +16,8 @@ stdenv.mkDerivation rec {
     zig.hook
   ];
 
-    postInstall = ''
-        mkdir "$out/lib/vapoursynth"
-        mv "$out/lib/libzsmooth.so" "$out/lib/vapoursynth"
-    '';
+  postInstall = ''
+    mkdir "$out/lib/vapoursynth"
+    mv "$out/lib/libzsmooth.so" "$out/lib/vapoursynth"
+  '';
 }
